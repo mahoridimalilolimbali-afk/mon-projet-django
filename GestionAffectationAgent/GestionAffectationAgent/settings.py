@@ -29,7 +29,7 @@ SECRET_KEY = 'django-insecure-hum-(6b^liy8b)0&$0_gxurin)%dq5=&%1!veyy1pym)m^qxv&
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['mahoridi.pythonanywhere.com']
+ALLOWED_HOSTS = ['MAHORIDI.pythonanywhere.com']
 
 
 # Application definition
