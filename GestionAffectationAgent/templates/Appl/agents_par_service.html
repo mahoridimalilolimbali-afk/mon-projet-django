@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des agents par service</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .filter-section {
+            padding: 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .filter-form {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            flex-wrap: wrap;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+            background: white;
+            cursor: pointer;
+        }
+
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-filter {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .btn-filter:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-reset {
+            background: #6c757d;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-reset:hover {
+            background: #5a6268;
+        }
+
+        .results-section {
+            padding: 30px;
+        }
+
+        .stats {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .stats-info {
+            font-size: 16px;
+            color: #004085;
+        }
+
+        .stats-info strong {
+            font-size: 24px;
+        }
+
+        .stats-service {
+            background: #28a745;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: #4CAF50;
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #e0e0e0;
+            color: #555;
+        }
+
+        tbody tr:hover {
+            background: #f5f5f5;
+        }
+
+        .badge-male {
+            background: #2196F3;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .badge-female {
+            background: #e91e63;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .poste-badge {
+            background: #ff9800;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state h3 {
+            color: #666;
+            margin-bottom: 10px;
+            font-size: 20px;
+        }
+
+        .empty-state p {
+            color: #999;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #17a2b8;
+        }
+
+        @media (max-width: 768px) {
+            .filter-form {
+                flex-direction: column;
+            }
+            
+            .form-group {
+                width: 100%;
+            }
+            
+            .btn-filter, .btn-reset {
+                width: 100%;
+            }
+            
+            th, td {
+                padding: 8px;
+                font-size: 12px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Liste des Agents par Service</h1>
+            <p>Sélectionnez un service pour afficher tous les agents affectés</p>
+        </div>
+
+        <div class="filter-section">
+            <form method="GET" class="filter-form">
+                <div class="form-group">
+                    <label for="service">🔍 Choisir un service</label>
+                    <select name="service" id="service">
+                        <option value="">-- Sélectionnez un service --</option>
+                        {% for service in services %}
+                        <option value="{{ service.id }}" {% if selected_service and selected_service.id == service.id %}selected{% endif %}>
+                            {{ service.NomService }} - {{ service.Designation }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn-filter">🔍 Afficher</button>
+                </div>
+                {% if selected_service %}
+                <div class="form-group">
+                    <a href="{% url 'liste_agents_par_service' %}" class="btn-reset">🔄 Réinitialiser</a>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+
+        <div class="results-section">
+            {% if selected_service %}
+                {% if agents_list %}
+                    <div class="stats">
+                        <div class="stats-info">
+                            📊 <strong>{{ total_agents }}</strong> agent(s) dans ce service
+                        </div>
+                        <div class="stats-service">
+                            🏢 {{ selected_service.NomService }}
+                        </div>
+                    </div>
+
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Nom Complet</th>
+                                    <th>Sexe</th>
+                                    <th>Date naissance</th>
+                                    <th>Lieu naissance</th>
+                                    <th>Poste occupé</th>
+                                    <th>Adresse</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in agents_list %}
+                                <tr>
+                                    <td>{{ forloop.counter }}</td>
+                                    <td>
+                                        <strong>{{ item.agent.nom }} {{ item.agent.postnom }}</strong><br>
+                                        <small>{{ item.agent.prenom }}</small>
+                                    </td>
+                                    <td>
+                                        {% if item.agent.sexe == 'Masculin' or item.agent.sexe == 'M' %}
+                                            <span class="badge-male">♂ {{ item.agent.sexe }}</span>
+                                        {% else %}
+                                            <span class="badge-female">♀ {{ item.agent.sexe }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ item.agent.dateNais|date:"d/m/Y" }}</td>
+                                    <td>{{ item.agent.lieuNais }}</td>
+                                    <td>
+                                        <span class="poste-badge">{{ item.poste.Designation }}</span>
+                                    </td>
+                                    <td>
+                                        <small>
+                                            {{ item.agent.Quartier }}, {{ item.agent.Avenu }}
+                                        </small>
+                                     </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <h3>😕 Aucun agent trouvé</h3>
+                        <p>Aucun agent n'est affecté au service <strong>{{ selected_service.NomService }}</strong></p>
+                        <p style="margin-top: 10px;">💡 Veuillez affecter des agents à ce service via l'administration</p>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="empty-state">
+                    <h3>👈 Sélectionnez un service</h3>
+                    <p>Choisissez un service dans la liste déroulante pour voir les agents affectés</p>
+                    {% if services %}
+                        <p style="margin-top: 10px; color: #28a745;">✅ {{ services.count }} service(s) disponible(s)</p>
+                    {% else %}
+                        <p style="margin-top: 10px; color: #dc3545;">⚠️ Aucun service trouvé. Veuillez ajouter des services.</p>
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

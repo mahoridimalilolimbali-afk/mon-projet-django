@@ -1,0 +1,7 @@
+<form method="POST">
+    {% csrf_token %}
+    
+    {{ form.as_p }}
+
+    <button type="submit" class="btn btn-register w-100">CRÉER MON COMPTE</button>
+</form>

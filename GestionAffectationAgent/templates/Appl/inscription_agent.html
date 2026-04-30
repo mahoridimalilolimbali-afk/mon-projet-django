@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MML3226 · Inscription Agent</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e0eafc 0%, #cfdef3 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+        }
+
+        .card {
+            max-width: 700px;
+            width: 100%;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1), 0 5px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #1a4972 0%, #0f3557 100%);
+            padding: 1.8rem 2rem;
+            text-align: center;
+        }
+
+        .card-header h1 { color: white; font-size: 1.9rem; font-weight: 700; }
+        .card-header h1 i { color: #ffcd6b; margin-right: 8px; }
+        .card-header p { color: #bfd9f0; font-size: 0.9rem; }
+
+        /* --- STYLE DU MESSAGE CORRIGÉ --- */
+        .toast-message {
+            position: fixed;
+            top: -100px; /* Caché au dessus */
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2e7d5e;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: top 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            pointer-events: none;
+        }
+
+        .toast-message.active { top: 25px; } /* Position d'affichage */
+
+        .card-body { padding: 2rem; background: #ffffff; }
+        .form-grid { display: flex; flex-direction: column; gap: 1.2rem; }
+        .input-group { display: flex; flex-direction: column; gap: 0.4rem; }
+        .input-group label { font-size: 0.8rem; font-weight: 700; color: #1f4d78; text-transform: uppercase; }
+        
+        .input-group input, .input-group select {
+            padding: 0.9rem 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 1.2rem;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .btn-submit {
+            background: linear-gradient(95deg, #1a4972, #245f8a);
+            color: white;
+            border: none;
+            padding: 1rem;
+            width: 100%;
+            border-radius: 2.5rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .footer-note { margin-top: 1.8rem; text-align: center; font-size: 0.7rem; color: #8aaec0; border-top: 1px solid #ecf3f9; padding-top: 1.3rem; }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <div id="toastMsg" class="toast-message">
+        <i id="toastIcon" class="fas fa-check-circle"></i> 
+        <span id="toastText"></span>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h1><i class="fas fa-user-check"></i> MML3226</h1>
+            <p>Formulaire d'affectation · Nouvel agent</p>
+            <h3 style="text-align: center; background-color: #ffcd6b;"><a href="/Appl/ListeAgent"><i class="fas fa-arrow-left"></i> Retour à l'espace agent</a></h3><br>
+
+        </div>
+        <div class="card-body">
+            <form method="POST" action="/Appl/Ag" id="agentForm">
+                {% csrf_token %}
+                <div class="form-grid">
+                    <div class="input-group"><label>Nom</label><input type="text" name="nom" placeholder="entrer votre nom" required></div>
+                    <div class="input-group"><label>Postnom</label><input type="text" name="postnom" placeholder="entrer votre postnom" required></div>
+                    <div class="input-group"><label>Prénom</label><input type="text" name="prenom" placeholder="entrer votre prenom" required></div>
+                    <div class="input-group">
+                        <label>Sexe</label>
+                        <select name="sexe" required>
+                            <option value="MASCULIN">🧑Masculin</option>
+                            <option value="FEMININ">👩Féminin</option>
+                        </select>
+                    </div>
+                    <div class="input-group"><label>Lieu de naissance</label><input type="text" name="lieuNais" placeholder="entrer votre lieu de naissance" required></div>
+                    <div class="input-group"><label>Date de naissance</label><input type="date" name="dateNais" placeholder="entrer votre date de naissance" required></div>
+                    <div class="input-group"><label>Quartier</label><input type="text" name="Quartier" placeholder="entrer votre quartier" required></div>
+                    <div class="input-group"><label>Avenue / Rue</label><input type="text" name="Avenu" placeholder="entrer votre avenu" required></div>
+                    
+                    <button type="submit" class="btn-submit">
+                        <i class="fas fa-save"></i> Enregistrer l'agent
+                    </button>
+                </div>
+            </form>
+            <div class="footer-note">MML3226 Gestion affectation</div>
+        </div>
+    </div>
+
+    <script>
+        function showToast(msg, tags) {
+            const toast = document.getElementById('toastMsg');
+            document.getElementById('toastText').innerText = msg;
+            
+            if(tags.includes('error')) toast.style.backgroundColor = '#c7362b';
+            
+            toast.classList.add('active');
+            setTimeout(() => { toast.classList.remove('active'); }, 6000);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            '{% if messages %}'
+                '{% for message in messages %}'
+                    showToast("{{ message }}", "{{ message.tags }}");
+                '{% endfor %}'
+            '{% endif %}'
+        });
+    </script>
+</body>
+</html>

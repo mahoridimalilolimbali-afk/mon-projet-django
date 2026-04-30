@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MML3226 · Gestion des Agents</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #e8eef4 0%, #d4e0ec 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #1a4972 0%, #0f3557 100%);
+            color: white;
+            padding: 1.8rem 2rem;
+            border-radius: 1.8rem;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            animation: slideDown 0.5s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .header h1 i {
+            margin-right: 12px;
+            color: #ffcd6b;
+        }
+
+        .header p {
+            font-size: 0.85rem;
+            opacity: 0.85;
+            margin-top: 5px;
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, #ffcd6b, #ffb347);
+            color: #1a4972;
+            padding: 0.8rem 1.8rem;
+            border-radius: 2rem;
+            text-decoration: none;
+            font-weight: 700;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .btn-add:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            background: linear-gradient(135deg, #ffc247, #ffa82e);
+        }
+
+        /* Zone des messages Django (en haut, 6 secondes) */
+        .messages-container {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1200;
+            width: auto;
+            max-width: 90%;
+            min-width: 300px;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .message-toast {
+            background: #2e7d5e;
+            color: white;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(4px);
+            animation: fadeInOut 6s ease forwards;
+            margin-bottom: 10px;
+        }
+
+        .message-toast.error {
+            background: #c7362b;
+        }
+
+        .message-toast i {
+            font-size: 1.1rem;
+        }
+
+        @keyframes fadeInOut {
+            0% {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            10% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            90% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-20px);
+                display: none;
+            }
+        }
+
+        /* Tableau */
+        .table-container {
+            background: white;
+            border-radius: 1.8rem;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f8fbfe;
+            padding: 1.2rem 1rem;
+            text-align: left;
+            font-weight: 700;
+            color: #1a4972;
+            border-bottom: 2px solid #e2edf5;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 1rem 1rem;
+            border-bottom: 1px solid #eff3f8;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        tr:hover {
+            background: #fafdff;
+        }
+
+        .statut-ok {
+            background: linear-gradient(135deg, #2e7d5e, #1e5a44);
+            color: white;
+            padding: 0.35rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            border: none;
+            transition: 0.2s;
+        }
+
+        .statut-ok:hover {
+            transform: scale(1.05);
+            box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+        }
+
+        .statut-xx {
+            background: linear-gradient(135deg, #c7362b, #a02015);
+            color: white;
+            padding: 0.35rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-actions {
+            display: flex;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.45rem 1rem;
+            border-radius: 1.8rem;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-modifier {
+            background: #1a4972;
+            color: white;
+        }
+
+        .btn-supprimer {
+            background: #c7362b;
+            color: white;
+        }
+
+        .btn-affecter {
+            background: #2e7d5e;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-card {
+            background: white;
+            max-width: 520px;
+            width: 90%;
+            border-radius: 2rem;
+            padding: 2rem;
+            position: relative;
+            animation: modalPop 0.25s ease;
+            box-shadow: 0 30px 50px rgba(0,0,0,0.3);
+        }
+
+        @keyframes modalPop {
+            from {
+                transform: scale(0.95);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-card h3 {
+            font-size: 1.6rem;
+            margin-bottom: 1.2rem;
+            color: #1a4972;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #ffcd6b;
+            padding-left: 15px;
+        }
+
+        .modal-card input,
+        .modal-card select {
+            width: 100%;
+            padding: 0.9rem 1rem;
+            margin-bottom: 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 1rem;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        .modal-card input:focus,
+        .modal-card select:focus {
+            outline: none;
+            border-color: #1a4972;
+            box-shadow: 0 0 0 3px rgba(26,73,114,0.1);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.2rem;
+        }
+
+        .btn-confirm {
+            background: linear-gradient(135deg, #2e7d5e, #1e5a44);
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .btn-cancel {
+            background: #eef2f6;
+            color: #1a4972;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            cursor: pointer;
+            flex: 1;
+        }
+
+        .btn-cancel:hover {
+            background: #e2e8f0;
+        }
+
+        .close-icon {
+            position: absolute;
+            top: 1.2rem;
+            right: 1.2rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #94a3b8;
+            transition: 0.2s;
+        }
+
+        .close-icon:hover {
+            color: #c7362b;
+            transform: rotate(90deg);
+        }
+
+        hr {
+            margin: 0.8rem 0 1rem;
+            border: 0;
+            height: 1px;
+            background: #e2edf5;
+        }
+
+        .empty-row td {
+            text-align: center;
+            padding: 3rem;
+            color: #8aaec0;
+            font-style: italic;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                padding: 1rem;
+            }
+            .btn-actions {
+                flex-direction: column;
+                gap: 0.4rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="messages-container" id="messagesContainer">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="message-toast {% if message.tags == 'error' %}error{% endif %}">
+                        <i class="fas {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-check-circle{% endif %}"></i>
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="header">
+            <div>
+                <h1><i class="fas fa-users-gear"></i> MML3226</h1>
+                <p><i class="fas fa-chart-line"></i> Gestion des affectations · Suivi des agents</p>
+            </div>
+            <div class="back-link">
+            
+        </div>
+            <button class="btn-add" id="btnNouvelAgent"><i class="fas fa-plus-circle"></i> Nouvel agent</button>
+            
+        </div>
+        
+<h3 style="text-align: center;"><a href="/Appl/accAdmin"><i class="fas fa-arrow-left"></i> Retour à l'accueil'</a></h3><br>
+
+        <div class="table-container">
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th><i class="fas fa-hashtag"></i> ID</th>
+                        <th><i class="fas fa-user"></i> Nom complet</th>
+                        <th><i class="fas fa-venus-mars"></i> Sexe</th>
+                        <th><i class="fas fa-map-pin"></i> Lieu naiss.</th>
+                        <th><i class="fas fa-calendar"></i> Date naiss.</th>
+                        <th><i class="fas fa-home"></i> Quartier</th>
+                        <th><i class="fas fa-circle-info"></i> État</th>
+                        <th><i class="fas fa-bolt"></i> Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableAgentsBody">
+                    <tr class="empty-row"><td colspan="8"><i class="fas fa-spinner fa-pulse"></i> Chargement des agents...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="actionModal" class="modal">
+        <div class="modal-card" id="modalCard"></div>
+    </div>
+
+    <script>
+        // CSRF Token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+
+        const modal = document.getElementById('actionModal');
+        const modalCard = document.getElementById('modalCard');
+
+        function showToast(message, isError = false) {
+            const container = document.getElementById('messagesContainer');
+            const toastDiv = document.createElement('div');
+            toastDiv.className = 'message-toast' + (isError ? ' error' : '');
+            toastDiv.innerHTML = `<i class="fas ${isError ? 'fa-circle-exclamation' : 'fa-check-circle'}"></i> ${message}`;
+            container.appendChild(toastDiv);
+            
+            setTimeout(() => {
+                toastDiv.style.opacity = '0';
+                setTimeout(() => {
+                    if (toastDiv.parentNode) toastDiv.parentNode.removeChild(toastDiv);
+                }, 600);
+            }, 6000);
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            modalCard.innerHTML = '';
+        }
+
+        function openModal(content) {
+            modalCard.innerHTML = content;
+            modal.style.display = 'flex';
+            
+            const cancelBtn = modalCard.querySelector('.btn-cancel');
+            const closeIcon = modalCard.querySelector('.close-icon');
+            if (cancelBtn) cancelBtn.addEventListener('click', closeModal);
+            if (closeIcon) closeIcon.addEventListener('click', closeModal);
+            
+            const form = modalCard.querySelector('form');
+            if (form) {
+                form.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const formData = new FormData(form);
+                    const actionUrl = form.getAttribute('data-url');
+                    
+                    try {
+                        const response = await fetch(actionUrl, {
+                            method: 'POST',
+                            body: formData,
+                            headers: { 'X-CSRFToken': csrftoken }
+                        });
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        } else {
+                            const result = await response.json();
+                            if (result.success) {
+                                showToast(result.message);
+                                closeModal();
+                                chargerAgents();
+                            } else {
+                                showToast(result.message, true);
+                            }
+                        }
+                    } catch (error) {
+                        showToast('Erreur de connexion', true);
+                    }
+                });
+            }
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+
+        async function chargerAgents() {
+            try {
+                const response = await fetch('/api/agents/');
+                const data = await response.json();
+                const tbody = document.getElementById('tableAgentsBody');
+                if (!tbody) return;
+                tbody.innerHTML = '';
+                
+                if (data.agents.length === 0) {
+                    tbody.innerHTML = '<tr class="empty-row"><td colspan="8"><i class="fas fa-users-slash"></i> Aucun agent enregistré</td></tr>';
+                    return;
+                }
+                
+                data.agents.forEach(agent => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td><strong>${agent.id}</strong></td>
+                        <td><i class="fas fa-user-circle" style="color:#1a4972; margin-right:6px;"></i> ${agent.prenom} ${agent.nom} ${agent.postnom}</td>
+                        <td>${agent.sexe === 'MASCULIN' ? '🧑 Masculin' : '👩 Féminin'}</td>
+                        <td>${agent.lieuNais}</td>
+                        <td>${agent.dateNais}</td>
+                        <td>${agent.Quartier}</td>
+                        <td>
+                            ${agent.est_affecte 
+                                ? `<button class="statut-ok btn-desaffecter" data-id="${agent.id}" data-nom="${agent.prenom} ${agent.nom}" title="Cliquer pour désaffecter"><i class="fas fa-check"></i> OK</button>` 
+                                : '<span class="statut-xx"><i class="fas fa-xmark"></i> XX</span>'}
+                        </td>
+                        <td class="btn-actions">
+                            <button class="btn btn-modifier" data-id="${agent.id}"><i class="fas fa-pen"></i> Modifier</button>
+                            <button class="btn btn-supprimer" data-id="${agent.id}" data-nom="${agent.prenom} ${agent.nom}"><i class="fas fa-trash"></i> Supprimer</button>
+                            <button class="btn btn-affecter" data-id="${agent.id}"><i class="fas fa-handshake"></i> Affecter</button>
+                        </td>
+                    `;
+                });
+                
+                // Événements pour les nouveaux boutons désaffecter
+                document.querySelectorAll('.btn-desaffecter').forEach(btn => {
+                    btn.addEventListener('click', () => ouvrirFormulaireDesaffecter(btn.dataset.id, btn.dataset.nom));
+                });
+
+                document.querySelectorAll('.btn-modifier').forEach(btn => {
+                    btn.addEventListener('click', () => ouvrirFormulaireModifier(btn.dataset.id));
+                });
+                document.querySelectorAll('.btn-supprimer').forEach(btn => {
+                    btn.addEventListener('click', () => ouvrirFormulaireSupprimer(btn.dataset.id, btn.dataset.nom));
+                });
+                document.querySelectorAll('.btn-affecter').forEach(btn => {
+                    btn.addEventListener('click', () => ouvrirFormulaireAffecter(btn.dataset.id));
+                });
+            } catch (error) {
+                console.error(error);
+                showToast('Erreur chargement des agents', true);
+            }
+        }
+
+        // --- NOUVELLE FONCTION : DÉSAFFECTER ---
+        function ouvrirFormulaireDesaffecter(id, nom) {
+            const content = `
+                <span class="close-icon">&times;</span>
+                <h3><i class="fas fa-user-minus"></i> Désaffecter l'agent</h3>
+                <p>Voulez-vous retirer l'affectation de <strong>${nom}</strong> ?</p>
+                <p style="font-size: 0.8rem; color: #666; margin-top:5px;">Cela permettra ensuite sa suppression si nécessaire.</p>
+                <hr>
+                <form data-url="/desaffecter/${id}/" method="POST">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}">
+                    <div class="modal-buttons">
+                        <button type="submit" class="btn-confirm" style="background:#1a4972;"><i class="fas fa-unlink"></i> Confirmer la désaffectation</button>
+                        <button type="button" class="btn-cancel"><i class="fas fa-times"></i> Annuler</button>
+                    </div>
+                </form>
+            `;
+            openModal(content);
+        }
+
+        async function ouvrirFormulaireModifier(id) {
+            try {
+                const response = await fetch(`/api/agent/${id}/`);
+                const agent = await response.json();
+                const content = `
+                    <span class="close-icon">&times;</span>
+                    <h3><i class="fas fa-edit"></i> Modifier l'agent</h3>
+                    <form data-url="/modifier/${id}/" method="POST">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}">
+                        <input type="text" name="nom" value="${agent.nom}" placeholder="Nom" required>
+                        <input type="text" name="postnom" value="${agent.postnom}" placeholder="Postnom" required>
+                        <input type="text" name="prenom" value="${agent.prenom}" placeholder="Prénom" required>
+                        <select name="sexe" required>
+                            <option value="MASCULIN" ${agent.sexe === 'MASCULIN' ? 'selected' : ''}>Masculin</option>
+                            <option value="FEMININ" ${agent.sexe === 'FEMININ' ? 'selected' : ''}>Féminin</option>
+                        </select>
+                        <input type="text" name="lieuNais" value="${agent.lieuNais}" placeholder="Lieu naissance" required>
+                        <input type="date" name="dateNais" value="${agent.dateNais}" required>
+                        <input type="text" name="Quartier" value="${agent.Quartier}" placeholder="Quartier" required>
+                        <input type="text" name="Avenu" value="${agent.Avenu}" placeholder="Avenue" required>
+                        <div class="modal-buttons">
+                            <button type="submit" class="btn-confirm"><i class="fas fa-save"></i> Enregistrer</button>
+                            <button type="button" class="btn-cancel"><i class="fas fa-ban"></i> Annuler</button>
+                        </div>
+                    </form>
+                `;
+                openModal(content);
+            } catch (error) {
+                showToast('Erreur chargement agent', true);
+            }
+        }
+
+        function ouvrirFormulaireSupprimer(id, nom) {
+            const content = `
+                <span class="close-icon">&times;</span>
+                <h3><i class="fas fa-trash-alt"></i> Supprimer l'agent</h3>
+                <p>⚠️ Voulez-vous vraiment supprimer <strong>${nom}</strong> ?</p>
+                <hr>
+                <form data-url="/supprimer/${id}/" method="POST">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}">
+                    <div class="modal-buttons">
+                        <button type="submit" class="btn-confirm" style="background:#c7362b;"><i class="fas fa-check"></i> Oui, supprimer</button>
+                        <button type="button" class="btn-cancel"><i class="fas fa-times"></i> Annuler</button>
+                    </div>
+                </form>
+            `;
+            openModal(content);
+        }
+
+        async function ouvrirFormulaireAffecter(id) {
+            try {
+                const [agentRes, servicesRes, postesRes, affectRes] = await Promise.all([
+                    fetch(`/api/agent/${id}/`),
+                    fetch('/api/services/'),
+                    fetch('/api/postes/'),
+                    fetch(`/api/affectation/${id}/`)
+                ]);
+                const agent = await agentRes.json();
+                const services = await servicesRes.json();
+                const postes = await postesRes.json();
+                const affectation = await affectRes.json();
+                
+                let serviceSelected = affectation?.service_id || '';
+                let posteSelected = affectation?.poste_id || '';
+                
+                let servicesOptions = '<option value="">-- Sélectionner un service --</option>';
+                services.forEach(s => {
+                    servicesOptions += `<option value="${s.id}" ${serviceSelected == s.id ? 'selected' : ''}>${s.NomService}</option>`;
+                });
+                
+                let postesOptions = '<option value="">-- Sélectionner un poste --</option>';
+                postes.forEach(p => {
+                    postesOptions += `<option value="${p.id}" ${posteSelected == p.id ? 'selected' : ''}>${p.Designation}</option>`;
+                });
+                
+                const content = `
+                    <span class="close-icon">&times;</span>
+                    <h3><i class="fas fa-handshake"></i> Affecter - ${agent.prenom} ${agent.nom}</h3>
+                    <form data-url="/affecter/${id}/" method="POST">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="${csrftoken}">
+                        <select name="service" required>${servicesOptions}</select>
+                        <select name="poste" required>${postesOptions}</select>
+                        <div class="modal-buttons">
+                            <button type="submit" class="btn-confirm"><i class="fas fa-save"></i> ${affectation?.service_id ? 'Modifier affectation' : 'Affecter'}</button>
+                            <button type="button" class="btn-cancel"><i class="fas fa-times"></i> Annuler</button>
+                        </div>
+                    </form>
+                `;
+                openModal(content);
+            } catch (error) {
+                showToast('Erreur chargement formulaire', true);
+            }
+        }
+
+        document.getElementById('btnNouvelAgent').addEventListener('click', () => {
+            window.location.href = '/inscription/';
+        });
+
+        chargerAgents();
+    </script>
+</body>
+</html>
