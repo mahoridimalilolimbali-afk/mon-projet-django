@@ -6,6 +6,7 @@ urlpatterns = [
     # Pages principales
     path('', chargAccueil),
     path('Rapp',chargRapport),
+    path('Accc',chargAcceuilInsc),
 
     path('Service', chargService),
     path('ListeAgent/', views.liste_agents, name='liste_agents'),
@@ -42,8 +43,8 @@ urlpatterns = [
     path('util',connectUtilisateur),
     path('accAdmin',chargAccueilAdmin),
     path('inscrUtili',chargInscrUtilisateur),
-     path('agents-par-service/', views.liste_agents_par_service, name='liste_agents_par_service'),
 
+    path('Rapp', chargRapport),  # Déjà dans votre urls.py
 
 
 ]

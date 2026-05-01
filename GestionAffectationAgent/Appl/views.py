@@ -17,6 +17,9 @@ from django.db.models import Q
 def chargLogin(request):
     return render(request, "Appl/login.html")
 
+def chargAccueil(request):
+    return render(request, "Appl/Accueil.html")
+
 #Appelation du formulaire de rapport par filtrage
 def chargRapport(request):
     return render(request, "Appl/agents_par_service.html")
@@ -35,8 +38,8 @@ def connectUtilisateur(request):
 
 
 # Appelation de la page accueil
-def chargAccueil(request):
-    return render(request, "Appl/Accueil.html")
+def chargAcceuilInsc(request):
+    return render(request, "Appl/inscriptionUtilisateur.html")
 @login_required
 #Appelation de la page accueil de l'administrateur après l'authentification
 def chargAccueilAdmin(request):
@@ -81,7 +84,7 @@ def inserer_agent(request):
             messages.success(request, f" enregistré avec succès ✅")
             
             # TRÈS IMPORTANT : On redirige pour recharger la page et afficher le Toast
-            return redirect("/Appl/inscription/") # Ou l'URL correspondante à cette vue
+            return redirect("/Appl/Accc") # Ou l'URL correspondante à cette vue
 
         except Exception as e:
             messages.error(request, f"Erreur lors de l'enregistrement : {e}")
@@ -331,48 +334,69 @@ def supprimer_poste(request, pk):
     return JsonResponse({'success': False, 'message': 'Erreur lors de la suppression.'})
 
 
-#RAPPORTfrom django.shortcuts import render
-def liste_agents_par_service(request):
-    """Affiche la liste des agents filtrés par service"""
-    
-    # Récupérer tous les services
-    services = Service.objects.all()
-    
-    # Initialisation des variables
-    agents_list = []
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Remplacez cette fonction :
+def chargRapport(request):
+    return render(request, "Appl/agents_par_service.html")
+
+# Par celle-ci :
+def chargRapport(request):
+    services = Service.objects.all()  # Récupère tous les services
     selected_service = None
+    agents_data = []
     
-    # Vérifier si un service a été sélectionné
-    service_id = request.GET.get('service')
+    service_id = request.GET.get('service_id')
     
     if service_id:
         try:
-            # Récupérer le service sélectionné
             selected_service = Service.objects.get(id=service_id)
+            # Récupérer les affectations pour ce service
+            affectations = Affectation.objects.filter(Se=selected_service).select_related('Ag', 'Po')
             
-            # Récupérer toutes les affectations de ce service
-            affectations = Affectation.objects.filter(
-                Se=selected_service
-            ).select_related('Ag', 'Po')
-            
-            # Construire la liste des agents avec leurs postes
             for affectation in affectations:
-                agents_list.append({
-                    'agent': affectation.Ag,
-                    'poste': affectation.Po,
-                    'affectation_id': affectation.id,
+                agents_data.append({
+                    'nom': affectation.Ag.nom,
+                    'postnom': affectation.Ag.postnom,
+                    'prenom': affectation.Ag.prenom,
+                    'service': affectation.Se.NomService,
+                    'poste': affectation.Po.Designation,
                 })
         except Service.DoesNotExist:
             pass
     
-    # Contexte pour le template
     context = {
         'services': services,
+        'agents_data': agents_data,
         'selected_service': selected_service,
-        'agents_list': agents_list,
-        'total_agents': len(agents_list),
     }
-    
-    return render(request, 'agents_par_service.html', context)
+    return render(request, "Appl/agents_par_service.html", context)
+
+
+
+
+
+
+
+
+
+
+
 
 
